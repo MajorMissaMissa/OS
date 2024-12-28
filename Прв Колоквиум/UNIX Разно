@@ -1,0 +1,166 @@
+
+1.
+1.1. Креирајте директориуми со име directory001 и додади датотека со име file123. 
+/ Create a directory with name directory001 and add a file named file123.
+
+mkdir directory001
+touch directory001/file123
+1.2.апишете команда со која ќе ја прочитате помошната документација за командата cat.
+/ Write a command to read the manual for the command cat.
+
+man cat
+1.3.Променете ги пермисиите на фајлот file123 така што истиот може да го читаат и запишуваат само корисникот и неговата група. 
+/ Change the file permissions for the file named file123 so that it can be read and written into by the user and the group.
+
+chmod ug+xr directory001/file123
+1.4.Напишете команда со која ќе добиете информација кој сé е тековно најавен на системот.
+/ Write a command to get the info about the users which are currently logged in on the system.
+
+w ili who
+1.5. Креирај нов директориум directory002 и копирај ја датотеката file123 во него со ново име file234 
+/ Create a new directory named directory002 and copy file123 into the new directory and change the name of the file to file234
+
+mkdir directory002
+cp directory001/file123 directory002/file234
+1.6. Избришете го директориумот directory001 кој го креиравте во рамки на оваа вежба заедно со целосната негова содржина.
+/ Delete directory001 created in this exercise together with its content.
+
+rm -r directory001
+
+
+2.
+2.1.Креирајте директориум со име results и во него csv датотеки со име OS1.txt и OS2.txt 
+/ Create a folder with the name results and in it csv files named OS1.txt and OS2.txt.
+
+mkdir results
+touch results/OS1.txt results/OS2.txt
+Содржина на ОС1:
+207533  18.03.2024  25:37  groupB  not_submitted
+237641  20.03.2024  43:14  groupA  submitted
+217829  19.03.2024  12:28  groupB  submitted
+228451  21.03.2024  35:47  groupA  not_submitted
+219474  18.03.2024  54:19  groupB  submitted
+238017  21.03.2024  09:33  groupA  submitted
+218268  20.03.2024  18:40  groupB  submitted
+229794  18.03.2024  31:59  groupA  not_submitted
+208142  20.03.2024  22:00  groupB  submitted
+239768  19.03.2024  47:56  groupA  not_submitted
+237671  22.03.2024  38:05  groupB  submitted
+238229  18.03.2024  15:49  groupA  submitted
+229837  20.03.2024  29:21  groupB  not_submitted
+218483  19.03.2024  47:11  groupA  submitted
+237835  18.03.2024  23:25  groupB  not_submitted
+228704  21.03.2024  20:56  groupA  submitted
+238077  18.03.2024  14:24  groupB  submitted
+208115  20.03.2024  17:31  groupA  not_submitted
+217802  22.03.2024  10:47  groupB  submitted
+239377  19.03.2024  36:16  groupA  submitted
+217954  18.03.2024  55:47  groupB  not_submitted
+228565  21.03.2024  47:12  groupA  submitted
+219006  18.03.2024  33:00  groupB  submitted
+238372  20.03.2024  28:59  groupA  not_submitted
+208228  19.03.2024  40:07  groupB  submitted
+228748  18.03.2024  51:43  groupA  submitted
+219113  22.03.2024  17:05  groupB  not_submitted
+238604  18.03.2024  45:06  groupA  submitted
+217895  21.03.2024  59:11  groupB  not_submitted
+228950  19.03.2024  38:23  groupA  submitted
+219220  18.03.2024  17:26  groupB  submitted
+238494  21.03.2024  28:33  groupA  not_submitted
+208341  18.03.2024  37:12  groupB  submitted
+217959  22.03.2024  33:42  groupA  not_submitted
+239024  18.03.2024  51:18  groupB  submitted
+218255  19.03.2024  19:24  groupA  submitted
+228927  20.03.2024  44:30  groupB  not_submitted
+238233  18.03.2024  25:11  groupA  submitted
+217974  21.03.2024  38:53  groupB  submitted
+229340  18.03.2024  36:27  groupA  not_submitted
+208460  19.03.2024  12:53  groupB  submitted
+239152  22.03.2024  42:32  groupA  submitted
+218340  18.03.2024  34:48  groupB  not_submitted
+228880  20.03.2024  19:30  groupA  submitted
+219030  18.03.2024  56:01  groupB  submitted
+238324  21.03.2024  22:16  groupA  not_submitted
+217844  18.03.2024  47:42  groupB  submitted
+229393  19.03.2024  15:29  groupA  submitted
+238647  22.03.2024  34:54  groupB  not_submitted
+
+Содржина на ОС2:
+207533  11.03.2024  25:37  groupB  not_submitted
+237641  13.03.2024  43:14  groupA  submitted
+217829  12.03.2024  12:28  groupB  submitted
+228451  14.03.2024  35:47  groupA  not_submitted
+219474  11.03.2024  54:19  groupB  submitted
+238017  14.03.2024  09:33  groupA  submitted
+218268  13.03.2024  18:40  groupB  submitted
+229794  12.03.2024  31:59  groupA  not_submitted
+208142  13.03.2024  22:00  groupB  submitted
+239768  15.03.2024  47:56  groupA  not_submitted
+237671  11.03.2024  38:05  groupB  submitted
+238229  15.03.2024  15:49  groupA  submitted
+229837  13.03.2024  29:21  groupB  not_submitted
+218483  14.03.2024  47:11  groupA  submitted
+237835  12.03.2024  23:25  groupB  not_submitted
+228704  15.03.2024  20:56  groupA  submitted
+238077  11.03.2024  14:24  groupB  submitted
+208115  12.03.2024  17:31  groupA  not_submitted
+217802  14.03.2024  10:47  groupB  submitted
+239377  13.03.2024  36:16  groupA  submitted
+217954  15.03.2024  55:47  groupB  not_submitted
+228565  11.03.2024  47:12  groupA  submitted
+219006  13.03.2024  33:00  groupB  submitted
+238372  15.03.2024  28:59  groupA  not_submitted
+208228  14.03.2024  40:07  groupB  submitted
+228748  12.03.2024  51:43  groupA  submitted
+219113  14.03.2024  17:05  groupB  not_submitted
+238604  11.03.2024  45:06  groupA  submitted
+217895  12.03.2024  59:11  groupB  not_submitted
+228950  13.03.2024  38:23  groupA  submitted
+219220  15.03.2024  17:26  groupB  submitted
+238494  14.03.2024  28:33  groupA  not_submitted
+208341  11.03.2024  37:12  groupB  submitted
+217959  13.03.2024  33:42  groupA  not_submitted
+239024  15.03.2024  51:18  groupB  submitted
+218255  12.03.2024  19:24  groupA  submitted
+228927  14.03.2024  44:30  groupB  not_submitted
+238233  13.03.2024  25:11  groupA  submitted
+217974  11.03.2024  38:53  groupB  submitted
+229340  12.03.2024  36:27  groupA  not_submitted
+208460  14.03.2024  12:53  groupB  submitted
+239152  15.03.2024  42:32  groupA  submitted
+218340  11.03.2024  34:48  groupB  not_submitted
+228880  12.03.2024  19:30  groupA  submitted
+219030  14.03.2024  56:01  groupB  submitted
+238324  13.03.2024  22:16  groupA  not_submitted
+217844  15.03.2024  47:42  groupB  submitted
+229393  11.03.2024  15:29  groupA  submitted
+238647  12.03.2024  34:54  groupB  not_submitted
+2.2. Пополнете ги креираните датотеки со податоци за студентите кои го полагале предметот во формат: индекс датум време(минути:секунди) 
+група статус. (преземете ја содржината од линковите) / Fill in the files you created with data for the students that took the exam 
+for the course using the format: index date time(minutes:seconds) group status. (get the content of the files from the links below)
+
+cat>results/OS1.txt
+cat>results/OS2.txt
+2.3.Прикажете ја на екран содржината на креираните датотеки одделно, но и заедно. 
+/ Show the content for these files on screen, separately and together.
+
+cat results/OS1.txt
+cat results/OS1.txt
+cat results/OS1.txt results/OS2.txt
+2.4. Креирајте датотека со име total.txt во која ќе ги ископирате податоците за сите студенти од двете датотеки. 
+/ Create a file named total.txt that will have the data for all students from both files.
+
+cat results/OS1.txt results/OS2.txt > results/total.txt
+2.5.Прикажете ги на екран податоците само за студентите кои го започнале студирањето во 2023та година. 
+/ Show on the screen the data for the students that have enrolled the Faculty in 2023.
+
+grep '^23' results/total.txt
+2.6.Прикажете ги на екран само индекс, датум, време на студентите кои го започнале студирањето во 2021та година и имаат статус submitted.
+/ Show on the screen the names of the students, date and time that have enrolled the Faculty in 2021 and have status submitted.
+
+grep -v "not_submitted" results/total.txt | awk  '$1 ~ /^21/ {print $1, $2, $3}' | sort
+2.7.Пребројте колку студенти од група А го имаат прикачено (submitted) резултатот во помалку од 30 минути. 
+/ Count how many students have submitted the results in less than 30 minutes.
+
+grep "A submitted" results.txt | awk -F ' ' '{if ($4<30) print $0}' | wc -l
+
