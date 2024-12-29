@@ -212,3 +212,20 @@ echo "">> "$output_file"
 fi
 done
 
+СКРИПТИ ОД АУДИТОРИСКИ:
+Task 1
+ • To write a command routine that will check if the shell environment of the logged in user is 
+BASH. If it is not, write the working shell environment through the variable $SHELL.
+
+#!/bin/bash
+if [ "$SHELL" -eq "/bin/bash" ]; then
+echo "Vasata okolina e BASH"
+else
+echo "Vasata okolina ne e BASH"
+fi
+Task 2
+ • Write a command routine that checks whether the first command line argument is 1, 2, or 3 
+and prints the appropriate messages. If none of these values ​​is present, print an error 
+message.
+
+
