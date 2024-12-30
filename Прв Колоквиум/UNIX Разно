@@ -229,3 +229,50 @@ and prints the appropriate messages. If none of these values ​​is present, p
 message.
 
 
+#!/bin/bash
+if [ "$1" -eq "1" ];then
+echo " izbravte 1"
+elif [ "$1" -eq "2" ];then
+echo "izbravte 2"
+elif [ "$1" -eq "3" ];then
+echo "izbravte 3"
+else
+echo "ne izbravte nisto"
+fi
+Task 3
+ • To write a smartzip command routine that can automatically decompress bzip2, gzip, and 
+zip compressed files.
+ • ​Example of using the file command:​
+ • $ file lf.gz
+ • lf.gz: gzip compressed data, deflated, original filename, last modified: Mon Aug 27 23:09:18 2001, os : Unix
+
+
+#!/bin/bash
+filetype=$(file "$1")
+
+case "$filetype" in
+"$1: Zip archive"*) unzip "$1";;
+"$1: gzip compressed"*) gunzip "$1";;
+"$1:bzip2 compressed"*) bunzip2 "$1";;
+*)echo "Datotekata $1 ne e vo potrebniot format"
+exit 1;;
+esac
+Task 4
+ • To write a command procedure that will count down a certain number of seconds until the 
+start of the match.
+
+
+#!/bin/bash
+
+count=$1
+while [ $count -gt 0]; do
+echo $count
+count=$(($count-1))
+sleep 1
+done
+echo "natprevarot pocna"
+
+
+
+
+
