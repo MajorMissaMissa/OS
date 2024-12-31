@@ -272,6 +272,21 @@ sleep 1
 done
 echo "natprevarot pocna"
 
+Task 5
+ • To write command procedure that will her show the content of more textual files .
+
+#!/bin/bash
+for datoteka in $*
+do
+if [ -r "$datoteka" ]
+then
+echo "============== $datoteka ==========="
+cat -n $datoteka
+else
+echo "ERROR: Ne se cita $datoteka"
+fi
+done
+
 
 
 
