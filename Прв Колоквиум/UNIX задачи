@@ -57,5 +57,118 @@ done
 
 3.
  Да се најдат (временски) најновите 7 датотеки  во тековниот директориум чиешто име започнува со poc.
+#!/bin/bash
+
+i=7
+s="poc'
+echo "Datoteki koi zapocnuvaat so poc"
+ls -l $s* |grep ^-.*|sort
+echo "ima `ls -l $s*|grep ^-.*|wc -l` takvi datoteki."
+echo  "od koi $i najnovi se:"
+ls -l $s*|grep ^-.*|sort -k 7 |tail -$i
+
+4.
+Да се најде колку меморија зафаќаат датотеките во тековниот директориум кои имаат наставка .dat.
+
+c=0
+sum=0
+for i in `ls -l *.dat`
+do
+c=`expr $c+1`
+if [ $c -eq 5 ]; then
+sum=`expr $sum+$i`
+fi
+if [ $c -eq 9 ]; then
+c=0
+fi
+done
+echo "vkupnata golemina e: $sum"
+echo
+echo "So gotova funkcija goleminata e: `du -bc *.dat|tail -1|awk '{print $1}'`
+
+5.
+Да претпоставиме дека сакате да испратите едно исто писмо на повеќе луѓе со корисничко име на системот на
+кој сте најавени, со тоа што при обраќање кон личноста сакате да го користите нејзиното лично име, кое е исто 
+како корисничкото. Направете скрипта која ќе користи две датотеки: една iminja во која се наоѓаат имињата на вашите пријатели 
+и една pismo во која наместо името стои IME, 
+и со едно извршување на скриптата писмото ќе биде испратено до сите, со лично обраќање до секого.  
 
 
+#!/bin/bash
+for i in `cat iminja.txt`
+do
+touch $i.proba
+echo "Zdravo $i">>$i.proba
+cat poraka.txt>>$i.proba
+mail $i<$i.proba
+done
+
+5.
+Направете, во вид на скрипта, команда за безбедно бришење. Датотеките дадени како аргументи на скриптата не се 
+отстрануваат, туку се преместуваат 
+во директориумот ~/gjubre.На крај, скриптата ги отстранува сите датотеки од овој директориум кои се постари од еден ден. 
+
+mesec=`date | awk '{ print $2 }'`
+datum=`date | awk '{ print $3 }'`
+if [ -d ~/gjubre ]
+then
+	rm -r ~/gjubre
+fi
+mkdir ~/gjubre
+for i in $*
+do
+	mv $i ~/gjubre
+done
+cd ~/gjubre
+for j in `ls`
+do
+	m=`ls -l $j | awk '{ print $6 }'`
+	d=`ls -l $j | awk '{ print $7 }'`
+	if [ ! $mesec = $m -o ! $datum = $d ]
+	then
+		echo "Ja brisam $j"
+		rm $j
+	fi
+done
+
+6.
+Излистајте ги во посебна датотека сите датотеки во вашиот домашен директориум кои се модифицирани 
+во тековниот ден (потешка но незадолжителна варијанта: модифицирани во последните 24 часа. Уште потешка: 
+наместо во домашниот директориум, во неговото дрво).
+
+
+#!/bin/bash
+if [ -f modificirani ]; then
+rm  modificirani
+fi
+
+touch modificirani
+
+mesec=`date|awk '{print $2}'`
+datum=`date|awk '{print $3}'`
+for i in `ls`
+do
+if [ -f $i ]; then
+m=`ls -l $i|awk '{print $6}'`
+d=`ls -l $i|awk '{print $7}'`
+if [ $mesec =$m -a $datum =$d ];then
+echo $i>>modificirani
+fi
+fi
+done
+
+7.
+Направете скрипта која на секои 10 секунди ќе проверувадали корисникот student е најавен на системот, 
+се додека тој не се најави(со користење на наредбата sleep n , каде n е бројот на секунди). 
+
+while true; then
+if who| grep -q "^$username";then
+echo "Studentot e logiran"
+break
+else
+echo "Studentot ne e lofiran"
+fi
+sleep 10
+done
+
+8.
