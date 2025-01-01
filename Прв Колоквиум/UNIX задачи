@@ -1,0 +1,61 @@
+1.
+Направете скрипта која за секој активен процес прво го печати неговиот ID, па бројот на неговиот татко,
+па ве прашува дали да го убие процесот, и во зависност од одговорот изведува соодветна акција.	
+
+ps -l|cat > dat.tmp
+m=`cat dat.tmp|wc -l`
+m=`expr $m - 1`
+`tail -$m dat.tmp > temp.tmp`
+`cat temp.tmp > dat.tmp`
+awk '{print $2}' dat.tmp > PID
+awk '{print $3}' dat.tmp > PPID
+echo "Brojot na procesi e:" $m
+count1=1
+count2=1
+for i in `cat PID`
+do
+   count2=1
+   tmpPID=$i
+   for j in `cat PPID`
+   do
+      if [ $count1 -eq $count2 ] 
+      then
+         tmpPPID=$j
+      fi
+      count2=`expr $count2 + 1`
+   done
+   count1=`expr $count1 + 1`
+   echo "PROCES PID: " $tmpPID " PPID: " $tmpPPID
+   echo "Dali sakate da go izbrisete procesot? (d/n)"
+   read odg
+   if [ $odg = "d" ]
+   then 
+      kill -1 $tmpPID
+   fi
+done
+
+2.
+Да се креира скрипта avtomat со следново својство: под претпоставка дека во тековниот директориум постои скриптата skripta,
+која се повикува со еден аргумент, скриптата avtomat ќе ја извршува skripta со аргумент кој го задава корисникот за време на 
+извршувањето на avtomat.. Извршувањето ќе се повторува се додека корисникот не го внесе зборот kraj. Излезот од секое извршување 
+на skripta да се пренасочува во датотеката izlez.txt.
+На пример, ако skripta го печати својот аргумент, тогаш ако кoрисникот ги внесува последователно зборовите Denes, Utre,
+Zadutre, kraj, во датотеката izlez треба да се наоѓаат зборовите  Denes, Utre, Zadutre, секој во нов ред.
+
+
+#!/bin/bash
+
+touch izlez.txt
+while true; do
+echo -n  "Vnesete argumenti za skriptata ( ako sakate da prekinete pisete kraj)"
+read input
+if [ $input == "kraj" ]; then
+break
+fi
+./script "$input" >> izlez.txt
+done
+
+3.
+ Да се најдат (временски) најновите 7 датотеки  во тековниот директориум чиешто име започнува со poc.
+
+
