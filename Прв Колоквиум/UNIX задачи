@@ -287,7 +287,8 @@ fi
 
 chmod +x check_login.sh
 
-11. ИСПИТ Септември ( не беше дадено што се бара, туку само решението. Текстот е од ChatGPT )
+11. 
+ИСПИТ Септември ( не беше дадено што се бара, туку само решението. Текстот е од ChatGPT )
 Опис на решението:
 Оваа скрипта пресметува како даден износ (suma) може да се претстави со најмал можен број на парички или банкноти со вредности: 50, 10, 5, 2, и 1.
 Функционалност:
@@ -371,7 +372,8 @@ echo " $brojac5 * 5 "
 echo " $brojac2 * 2 "
 echo " $brojac1 * 1"
 
-12. ИСПИТ Јуни ( не беше дадено што се бара, туку само решението. Текстот е од ChatGPT )
+12.
+ИСПИТ Јуни ( не беше дадено што се бара, туку само решението. Текстот е од ChatGPT )
 Оваа скрипта ги проверува две датотеки (file1 и file2) дали се идентични и ако се, ја брише втората датотека (file2). 
 Ако датотеките не се идентични, скриптата ќе ги прикаже разликите.
 
@@ -439,5 +441,100 @@ fi
 else
 echo "Ne se isti"
 fi
+
+13.
+﻿Да се запишат во датотека rezultat.txt (ако датотеката постои нека се избрише) сите корисници кои се најавиле во ден зададен како прв аргумент, чие вкупно 
+време кое го поминале на системот е поголемо од вториот аргументи чија IP адреса започнува на третиот аргумент. Доколку има повеќе исти корисници,
+тие да се избришат и во датотеката rezultat.txt да ги има само еднаш.На крајот да се прикаже на екран содржината на rezultat.txt
+пример ./skripta.sh Mon 30 46
+
+#!/bin/bash
+
+if [ $# != "3" ];then
+echo "USAGE: Day minutes IP"
+fi
+
+if [ -f rezultat.txt ];then
+rm rezultat.txt
+fi
+//./skripta.sh day=Mon min=30 ip_prefix=46
+day=$1
+min_limit=$2
+ip_prefix=$3
+last|sed '/still/d'|grep "$day"|while read -r; do
+user=$(echo "$line"|awk '{print $1}')
+time=$(echo "$line"|awk '{print $NF}'|tr -d '()')
+ip=$(echo "$line"|awk '{print $3}')
+
+if[[$time == *:*]];then
+hours=$(echo "$time"|cut -d ':' -f1)
+minuts=$(echo "$time"|cut -d ':' -f2)
+total_minuts=$((hours*60+minutes))
+else
+total_minutes=$time
+fi
+if [ $total_minutes -gt $min_limit && $ip == $ip_prefix* ]];then
+echo "$user" >> rezultat.txt
+fi
+done
+sort -u rezultat.txt
+cat rezultat.txt
+
+14.
+Да се напише скрипта која како прв аргумент прима вредност која претставува до кој карактер (почнувајќи од првиот) сакаме да биде издвоен од секоја линија,
+а сите останати аргументи преставуваат датотеки од кои сакаме да бидат издвоени карактерите. Резултатот од секоја датотека да се запише во rezultat.txt,
+така што после сите карактери да пишува името на датотеката
+од која се издвоени. Доколку rezultat.txt постои треба да се допише во неа. На крајот да се прикаже содржината на rezultat.txt
+
+#!/bin/bash
+
+if [ $# != "2"];then
+echo "USAGE: $0 doKojKarakter Datoteki"
+exit 1
+fi
+
+doKojKarakter=$1
+shift
+output_file=rezultat.txt
+
+if [ -f "$output_file" ];then
+> "$output_file"
+else
+touch "$output_file"
+fi
+
+for i in "$@";do
+if [ -f "$i" ];then
+while IFS=read -r line;do
+linija=$(cut -c 1-"$doKojBroj")
+echo "$linija $i" >> "$output_file"
+ done < "$i"
+    else
+        echo "File $i does not exist. Skipping..."
+    fi
+done
+
+15.
+Da se napise komandna procedura koja vo daden imenik (prv agr) i site negovi podimenici ke gi pronajde site datoteki pomali
+od X bajti (vtor arg). Za sekoja od pronajdenite datoteki treba da se proveri dali e skripta i dokolku e, da se izvrsi.
+Dokolku korisnikot nema privilegii za izvrsuvanje soodvetno da se dodadat pred da se izvrsi skriptata. Kako rezultat na ovaa
+komandna procedura treba da se generira izvestaj (tekstualna datoteka) so dadeno ime (tret arg) vo koi ke se navedat
+iminjata na pronajdenite skripti i soodvetna informacija dali skriptata se izvrsuva so ili bez argumenti.
+Pretpostavete deka sekoja skripta pecati upatstvo pri nepravilno koristenje.
+
+Napravete proverka dali se prosledeni potrebnite argumenti i dololku ne se prikazete soodvetno upatstvo za upotreba. Da se
+vnimava i vtoriot argument na skriptata da bide broj. Dokolku izvrsniot imenik ne posto, skriptata treba da go izvesti
+korisnikot i da zavrsi neuspesno. Dokolku pak izleznata tekstualna datoteka postoi, postoeckata treba da se preimenuva
+so dodavanje _backup na krajot od imeto. Komandnata procedura treba da se zacuva kako zad2.sh
+
+16.
+UNIX команди
+а) (5 поени) Напишете UNIX команда која ќе ги прикажете сите детали за тековно активните процеси на корисниците чие корисничко име започнува на четири цифри. Командата снимете ја во датотека zad3a-t2.sh, во вашиот домашен именик на os.finki.ukim.mk серверот.
+б) (10 поени) Напишете UNIX команда со која ќе ги прикажете корисничките имиња на корисници кои се најавиле на серверот во текот на четврток, 18 јуни. Листата да биде нумерички сортирана и да не содржи дупликати. Командата снимете ја во датотека zad3b-t2.sh, во вашиот домашен именик на os.finki.ukim.mk серверот.
+ 
+UNIX командна процедура
+(25 поени) Да се напише командна процедура која во даден именик (прв аргумент) и сите негови подименици рекурзивно ќе ги пронајде сите датотеки модифицирани во даден временски интервал (втор аргумент). За секоја од пронајдените датотеки треба да се изброи колку пати се користат командите за филтрирање на текст и тој број да се додаде на крајот на самата датотека.
+Направете проверка дали се проследени потребните аргументи и доколку не се, прикажете соодветно упатство за употреба. Доколку изворниот именик не постои, скриптата треба да го извести корисникот за тоа и да заврши неуспешно. Да се внимава вториот аргумент на скриптата да биде во форматот "X – Y", каде X и Y означуваат час (на пример: "10 – 16", значи од 10:00 до 16:59 часот).
+Командната процедура снимете ја под името zad4-t2.sh, во вашиот домашен именик на os.finki.ukim.mk серверот.
 
 ============================================================================================================================================================
