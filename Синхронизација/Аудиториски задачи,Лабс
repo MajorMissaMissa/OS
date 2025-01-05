@@ -819,4 +819,88 @@ Player. Потоа секој од играчите треба да започн
 
 Вашата задача е да го дополните дадениот код според барањата на задачата, при што треба да внимавате не настане Race Condition и Deadlock.
 
+import java.util.HashSet;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+public class BasketballTournament {
+    public static void main(String[] args){
+        HashSet<Player>thread=new HashSet<>();
+        for (int i = 0; i <100 ; i++) {
+            Player p=new Player();
+            thread.add(p);
+        }
+        thread.forEach(Thread::start);
+        thread.forEach(threads->{
+            try {
+                threads.join(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.stream().filter(Thread::isAlive).forEach(threads -> {
+            System.out.println("Possible deadlock!");
+            thread.interrupt();
+        });
+
+        for (Player player : thread) {
+            if (player.isInterrupted()) {
+                return;
+            }
+        }
+
+        System.out.println("Tournament finished.");
+    }
+}
+
+
+class Player extends Thread{
+    static Semaphore playing=new Semaphore(20);
+    static Semaphore dressing=new Semaphore(10);
+    static Semaphore game=new Semaphore(0);
+static int dressedPlayers=0;
+static int donePlayers=0;
+static Lock dressedPlayerLock=new ReentrantLock();
+static Lock donePlayerLock=new ReentrantLock();
+    public void execute() throws InterruptedException {
+playing.acquire(1);
+        System.out.println("Player inside..");
+dressing.acquire(1);
+        System.out.println("In dressing room..");
+        Thread.sleep(10);
+dressing.release();
+dressedPlayerLock.lock();
+dressedPlayers++;
+dressedPlayerLock.unlock();
+dressedPlayerLock.lock();
+if (dressedPlayers==20){
+    game.release(20);
+}
+donePlayerLock.unlock();
+    game.acquire(1);
+        System.out.println("Game start..");
+Thread.sleep(100);
+donePlayerLock.lock();
+donePlayers++;
+donePlayerLock.unlock();
+donePlayerLock.lock();
+if (donePlayers==20){
+    System.out.println("Game finished..");
+    game.release(20);
+    donePlayers=0;
+    dressedPlayers=0;
+}
+donePlayerLock.unlock();
+
+    }
+@Override
+    public void run(){
+        try {
+            execute();
+        }catch (InterruptedException io){
+            io.printStackTrace();
+        }
+}
+
+}
