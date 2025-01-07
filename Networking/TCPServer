@@ -1,1 +1,47 @@
+package tcp;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Server extends Thread {
+    private int port;
+
+    public Server(int port) {
+        this.port = port;
+    }
+
+    public void run() {
+        System.out.println("SERVER: starting...");
+        ServerSocket serverSocket = null;
+
+        try {
+            serverSocket = new ServerSocket(this.port);
+        } catch (IOException var5) {
+            System.err.println(var5.getMessage());
+            return;
+        }
+
+        System.out.println("SERVER: started");
+        System.out.println("SERVER: waiting for connections...");
+
+        while(true) {
+            Socket newClient = null;
+
+            try {
+                newClient = serverSocket.accept();
+            } catch (IOException var4) {
+                System.err.println(var4.getMessage());
+            }
+
+            System.out.println("SERVER: new client - creating new worker thread...");
+            (new Worker(newClient)).start();
+        }
+    }
+
+    public static void main(String[] args) {
+        Server server = new Server(7000);
+        server.start();
+    }
+}
 
