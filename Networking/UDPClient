@@ -1,0 +1,49 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
+public class UDPClient extends Thread {
+    private String serverName;
+    private int serverPort;
+    private DatagramSocket socket;
+    private InetAddress address;
+    private String message;
+    private byte[] buffer;
+
+    public UDPClient(String serverName, int serverPort, String message) {
+        this.serverName = serverName;
+        this.serverPort = serverPort;
+        this.message = message;
+
+        try {
+            this.socket = new DatagramSocket();
+            this.address = InetAddress.getByName(serverName);
+        } catch (UnknownHostException | SocketException var5) {
+            var5.printStackTrace();
+        }
+
+    }
+
+    public void run() {
+        this.buffer = this.message.getBytes();
+        DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length, this.address, this.serverPort);
+
+        try {
+            this.socket.send(packet);
+            packet = new DatagramPacket(this.buffer, this.buffer.length, this.address, this.serverPort);
+            this.socket.receive(packet);
+            System.out.println(new String(packet.getData(), 0, packet.getLength()));
+        } catch (IOException var3) {
+            var3.printStackTrace();
+        }
+
+    }
+
+    public static void main(String[] args) {
+        UDPClient client = new UDPClient("localhost", 4445, "Hello :)");
+        client.start();
+    }
+}
