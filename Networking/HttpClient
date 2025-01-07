@@ -1,0 +1,51 @@
+package http;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+public class HttpClient extends Thread {
+
+    private final String serverAddress;
+    private final int serverPort;
+    private final String name;
+    private final String surname;
+
+    public HttpClient(String serverAddress, int serverPort, String name, String surname) {
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
+        this.name = name;
+        this.surname = surname;
+    }
+
+    @Override
+    public void run() {
+        String url = "http://" + serverAddress + ":" + serverPort + "/?name=" + name + "&surname=" + surname;
+        try {
+            URL serverUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) serverUrl.openConnection();
+            connection.setRequestMethod("GET");
+            
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+            }
+            connection.disconnect();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void main(String[] args) {
+        HttpClient client = new HttpClient("localhost", 8080, "Milena", "Trajanoska");
+        client.start();
+    }
+    
+}
