@@ -68,6 +68,28 @@ echo "ima `ls -l $s*|grep ^-.*|wc -l` takvi datoteki."
 echo  "od koi $i najnovi se:"
 ls -l $s*|grep ^-.*|sort -k 7 |tail -$i
 
+Ili pak moze i vaka da se resi:
+
+#!/bin/bash
+
+recent_files=$(grep ls -l| grep  '^-'| awk '{print $9}' | grep '^poc' | head -7)
+
+echo " Najnovite 7 datoteki koi pocnuvaat na poc:"
+echo "$recent_files"
+
+grep '^-' go filtrira ls -l t.e gi pecati samo regularnite fajlovi bez direktoriumi
+pr. 
+ls -l
+-rw-r--r--  1 user group 1234 Jan  6 10:00 regularfile.txt
+drwxr-xr-x  2 user group 4096 Jan  7 12:00 directory
+-rw-r--r--  1 user group 4567 Jan  7 12:30 poc_file1.log
+lrwxrwxrwx  1 user group   11 Jan  7 13:00 symlink -> regularfile.txt
+
+grep '^-'
+-rw-r--r--  1 user group 1234 Jan  6 10:00 regularfile.txt
+-rw-r--r--  1 user group 4567 Jan  7 12:30 poc_file1.log
+
+
 4.
 Да се најде колку меморија зафаќаат датотеките во тековниот директориум кои имаат наставка .dat.
 
