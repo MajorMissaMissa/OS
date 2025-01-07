@@ -1,0 +1,42 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+
+public class UDPServer extends Thread {
+    private DatagramSocket socket;
+    private byte[] buffer;
+
+    public UDPServer(int port) {
+        try {
+            this.socket = new DatagramSocket(port);
+        } catch (SocketException var3) {
+            var3.printStackTrace();
+        }
+
+        this.buffer = new byte[256];
+    }
+
+    public void run() {
+        DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
+
+        while(true) {
+            while(true) {
+                try {
+                    this.socket.receive(packet);
+                    String received = new String(packet.getData(), 0, packet.getLength());
+                    System.out.println("RECEIVED: " + received);
+                    packet = new DatagramPacket(this.buffer, this.buffer.length, packet.getAddress(), packet.getPort());
+                    this.socket.send(packet);
+                } catch (IOException var3) {
+                    var3.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        UDPServer server = new UDPServer(4445);
+        server.start();
+    }
+}
