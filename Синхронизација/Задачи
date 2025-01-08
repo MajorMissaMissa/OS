@@ -23,7 +23,260 @@ I.
   - `state.leave(this)` методот се повкува кај секој од бабуните откако бабунот ќе премине на другата страна на каноњот.
 
 
+public class BaboonCrossingSolution {
 
+	// Kontrola na jazheto od koja strana pominuvaat
+	static Semaphore mutexRope;
+
+	// Muteksi za promenlivite left i right levo i desno
+	static Semaphore mutexLeft;
+	static Semaphore mutexRight;
+
+	// Kontrola na majmuni za vlez vo chekalnata
+	static Semaphore turnStyle;
+
+	// Kontrola na brojot na majmuni koi se kacheni na jazhe
+	static Semaphore onRope;
+
+	static int left;
+	static int right;
+
+	public static void init() {
+		mutexRope = new Semaphore(1);
+		mutexLeft = new Semaphore(1);
+		mutexRight = new Semaphore(1);
+		turnStyle = new Semaphore(1);
+		onRope = new Semaphore(5);
+		left = right = 0;
+	}
+
+	public static class BaboonLeft extends TemplateThread {
+
+		public BaboonLeft(int numRuns) {
+			super(numRuns);
+		}
+
+		@Override
+		public void execute() throws InterruptedException {
+
+			// Kontrola za izgladnuvanje.
+			// So ovaj mutex se zabranuva vlez na majmuni od ist tip
+			// bidejkiposle odredeno vreme che dojdi majmun od sprotivnata
+			// strana
+			// ovaj mutex che go pomini bidejki e osloboden od majmunite koi
+			// chekaat
+			// za da preminat na jazheto i se zaglaveni na onRope.acquire()
+			// Majunot od sprotivnata strana che zaglavi na mutexRope.acquire()
+			// I so toa nema da se dozvoli vlez na majmuni od istata strana.
+			// Koga che preminat site majmuni koi chekaat za premin preku
+			// jazheto
+			// togash idi na red da preminuvaat majmuni od sprotivnata strana.
+			turnStyle.acquire();
+
+			// vlez na majmin
+			state.enter(this);
+
+			//
+			mutexLeft.acquire();
+			left++;
+			// Samo prviot majmun ja smenuva sostojbata na jazheto
+			if (left == 1) {
+				mutexRope.acquire();
+				state.leftPassing();
+			}
+
+			mutexLeft.release();
+
+			// Ko ova se dozvoluva nekoj nareden majmun da dojdi od bilo koja
+			// strana
+			turnStyle.release();
+
+			// Kontrola na brojot na majmuni na jazheto
+			onRope.acquire();
+			state.cross(this);
+			onRope.release();
+
+			mutexLeft.acquire();
+			left--;
+			state.leave(this);
+			// Posledniot majmun od redicata koja shto cheka go osloboduva
+			// jazheto
+			if (left == 0) {
+				mutexRope.release();
+			}
+
+			mutexLeft.release();
+		}
+
+	}
+
+	public static class BaboonRight extends TemplateThread {
+
+		public BaboonRight(int numRuns) {
+			super(numRuns);
+		}
+
+		// Istiot koe e prepishan od BaboonLeft klasata so promena na left vo
+		// right i obratno
+		@Override
+		public void execute() throws InterruptedException {
+			turnStyle.acquire();
+			state.enter(this);
+			mutexRight.acquire();
+			right++;
+			if (right == 1) {
+				mutexRope.acquire();
+				state.rightPassing();
+			}
+			mutexRight.release();
+			turnStyle.release();
+
+			onRope.acquire();
+			state.cross(this);
+			onRope.release();
+
+			mutexRight.acquire();
+			right--;
+			state.leave(this);
+			if (right == 0) {
+				mutexRope.release();
+			}
+			mutexRight.release();
+		}
+	}
+
+	static BaboonCrossingState state = new BaboonCrossingState();
+
+	public static void main(String[] args) {
+		for (int i = 0; i < 10; i++) {
+			run();
+		}
+	}
+
+	public static void run() {
+		try {
+			int numRuns = 1;
+			int numScenarios = 500;
+
+			HashSet<Thread> threads = new HashSet<Thread>();
+
+			for (int i = 0; i < numScenarios; i++) {
+				BaboonLeft l = new BaboonLeft(numRuns);
+				BaboonRight r = new BaboonRight(numRuns);
+				threads.add(l);
+				threads.add(r);
+			}
+
+			init();
+
+			ProblemExecution.start(threads, state);
+			System.out.println(new Date().getTime());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+public enum StateRope {
+		LEFT_PASSING, RIGHT_PASSING, NEUTRAL
+	}
+
+	private static final String CROSSING_NOT_PARALLEL = "The Crossing is NOT parallel!";
+	private static final String MAXIMUM_5_BABOONS = "Maximum 5 Baboons are allowed on the rope. The rope broke";
+	private static final String LEFT_NOT_ALLOWED = "The left baboon is not allowed to pass. (State not changed or there is right baboon passing)";
+	private static final String RIGHT_NOT_ALLOWED = "The right baboon is not allowed to pass. (State not changed or there is left baboon passing)";
+	private static final String UNSATISFIED_CONDITIONS_STATE = "The conditions for passing are not satisfied";
+	private static final String STARVATION = "The crossing is starving. (Starvation condition unfilled)";
+
+	private static final int STARVATION_VALUE = 30;
+	private static final int STARVATION_POINTS = 10;
+	private static final int MAXIMUM_5_BABOONS_POINTS = 10;
+	private static final int CROSSING_NOT_PARALLEL_POINTS = 5;
+	private static final int LEFT_NOT_ALLOWED_POINTS = 10;
+	private static final int RIGHT_NOT_ALLOWED_POINTS = 10;
+	private static final int UNSATISFIED_CONDITIONS_STATE_POINTS = 5;
+
+	private BoundCounterWithRaceConditionCheck crossing;
+	private BoundCounterWithRaceConditionCheck left;
+	private BoundCounterWithRaceConditionCheck right;
+
+	private StateRope state;
+
+	public BaboonCrossingState() {
+		state = StateRope.NEUTRAL;
+		right = new BoundCounterWithRaceConditionCheck(0, STARVATION_VALUE, 5,
+				"RIGHT-111", null, 0, null);
+		left = new BoundCounterWithRaceConditionCheck(0, STARVATION_VALUE, 5,
+				"LEFT-111", null, 0, null);
+		crossing = new BoundCounterWithRaceConditionCheck(0, 5,
+				MAXIMUM_5_BABOONS_POINTS, MAXIMUM_5_BABOONS, null, 0, null);
+	}
+
+	public void enter(TemplateThread baboon) {
+		if (baboon instanceof BaboonLeft) {
+			log(left.incrementWithMax(false), "LeftBaboon entering");
+		} else if (baboon instanceof BaboonRight) {
+			log(right.incrementWithMax(false), "RightBaboon entering");
+		}
+		Switcher.forceSwitch(10);
+	}
+
+	public void cross(TemplateThread baboon) {
+		if (baboon instanceof BaboonLeft) {
+			if (state == StateRope.LEFT_PASSING)
+				log(crossing.incrementWithMax(false), "LeftBaboon crossing");
+			else
+				logException(new PointsException(LEFT_NOT_ALLOWED_POINTS,
+						LEFT_NOT_ALLOWED));
+		} else if (baboon instanceof BaboonRight) {
+			if (state == StateRope.RIGHT_PASSING)
+				log(crossing.incrementWithMax(false), "Right crossing");
+			else
+				logException(new PointsException(RIGHT_NOT_ALLOWED_POINTS,
+						RIGHT_NOT_ALLOWED));
+		}
+		Switcher.forceSwitch(10);
+		log(crossing.decrementWithMin(false), null);
+
+	}
+
+	public void leftPassing() {
+		Switcher.forceSwitch(5);
+		log(left.assertEquals(1, UNSATISFIED_CONDITIONS_STATE_POINTS,
+				UNSATISFIED_CONDITIONS_STATE), "Condition 1 - OK");
+		log(right.assertEquals(0, UNSATISFIED_CONDITIONS_STATE_POINTS,
+				UNSATISFIED_CONDITIONS_STATE), "Condition 2 - OK");
+		state = StateRope.LEFT_PASSING;
+	}
+
+	public void rightPassing() {
+		Switcher.forceSwitch(5);
+		log(right.assertEquals(1, UNSATISFIED_CONDITIONS_STATE_POINTS,
+				UNSATISFIED_CONDITIONS_STATE), "Condition 1 - OK");
+		log(left.assertEquals(0, UNSATISFIED_CONDITIONS_STATE_POINTS,
+				UNSATISFIED_CONDITIONS_STATE), "Condition 2 - OK");
+		state = StateRope.RIGHT_PASSING;
+	}
+
+	public void leave(TemplateThread baboon) {
+		if (baboon instanceof BaboonLeft) {
+			log(left.decrementWithMin(false), "LeftBaboon leaving");
+		} else if (baboon instanceof BaboonRight) {
+			log(right.decrementWithMin(false), "RightBaboon leaving");
+		}
+		Switcher.forceSwitch(3);
+	}
+
+	@Override
+	public synchronized void finalize() {
+		if (right.getMax() == 1 && left.getMax() == 1) {
+			logException(new PointsException(CROSSING_NOT_PARALLEL_POINTS,
+					CROSSING_NOT_PARALLEL));
+		}
+
+		if (right.getMax() > STARVATION_VALUE
+				|| left.getMax() > STARVATION_VALUE)
+			logException(new PointsException(STARVATION_POINTS, STARVATION));
+	}
+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 II.
 Создавање околина за тестирање решенија на проблемот: „Филозофи кои вечераат“
@@ -73,7 +326,8 @@ N филозофи седат на кружна маса. Пред секој ф
 
 **DiningPhilosophersState.java**
 
-Наведената класа ја имплементира контролната околина во која ќе се изведува настанот, т.е. масата со филозофите. При тестирање на решенија на проблемот „филозофи кои вечераат“ треба да се обрне внимание на појавата на следните настани:
+Наведената класа ја имплементира контролната околина во која ќе се изведува настанот, т.е. масата со филозофите. При тестирање на решенија на проблемот 
+„филозофи кои вечераат“ треба да се обрне внимание на појавата на следните настани:
 
 1. Една вилушка се користи истовремено од повеќе од еден филозоф.
 2. Блокада: состојба во која секој од филозофите чека некој друг да ослободи вилушка.
@@ -84,7 +338,11 @@ N филозофи седат на кружна маса. Пред секој ф
 
 Најважни методи во оваа класа се методите `eat()` и `think()` кои се повикуваат во `execute()` методот на `DiningPhilosophers.Philosopher` класата:
 
-- `eat()` методот го имплементира процесот на јадење. Најпрво се забележува дека овој филозоф преминал во состојба „јадење“. Се проверува дали некој од соседите на овој филозоф, филзофите лево и десно од него, тековно јаде. Во таков случај се забележува исклучок, бидејќи дошло до појава на настан 1. од горенаведената листа. Се зголемува бројот на филозофи кои тековно јадат и нишката се суспендира одредено време за да се симулира јадење. Бројот на филозофи кои тековно јадат се намалува, а состојбата на филозофот се враќа во „размислување“ откако филозофот ќе заврши со јадење. Се напоменува дека состојбата „размислување“ во овој контекст претставува комплемент на состојбата „јадење“, т.е. филозоф во состојба „размислување“ може да не размислува, туку да чека вилушка за одново да почне да јаде.
+- `eat()` методот го имплементира процесот на јадење. Најпрво се забележува дека овој филозоф преминал во состојба „јадење“. Се проверува дали некој од соседите на овој 
+филозоф, филзофите лево и десно од него, тековно јаде. Во таков случај се забележува исклучок, бидејќи дошло до појава на настан 1. од горенаведената листа. Се зголемува бројот на
+филозофи кои тековно јадат и нишката се суспендира одредено време за да се симулира јадење. Бројот на филозофи кои тековно јадат се намалува, а состојбата на филозофот се враќа во „размислување“ 
+откако филозофот ќе заврши со јадење. Се напоменува дека состојбата „размислување“ во овој контекст претставува комплемент на состојбата „јадење“, т.е. филозоф во состојба „размислување“ може да 
+не размислува, туку да чека вилушка за одново да почне да јаде.
 - `think()` методот забележува дека филозофот преминал во состојба „размислување“ и ја суспендира нишката за да симулира поминување на време во мислење.
 
 Други важни методи во оваа класа се: `clear()` методот кој ја враќа состојбата на тековниот `DiningPhilosophersState` објект во првобитната состојба, и `finalize()` методот кој врши проверка за појава на настаните 4. и 3. од горенаведената листа. Нема потреба од посебна проверка за појава на настанот 2. од листата (блокада) бидејќи самата архитектура проверува дали истиот се случил. Поради начинот на забележување на исклучоците во тековната архитектура, при случување на блокада се бележи дека се случило изгладнување иако станува збор за вистинска блокада која всушност е препознаена од самата архитектура. Овој проблем може да се заобиколи доколку се коментира линијата код `throw e;` во `logException()` методот на `AbstractState` класата – во таков случај, се забележува грешка изгладнување и грешка блокада.
@@ -98,7 +356,130 @@ N филозофи седат на кружна маса. Пред секој ф
 <sub>1. https://www.cs.utexas.edu/users/EWD/transcriptions/EWD06xx/EWD625.html, Second Solution. As seen on 14.09.2014.</sub><br />
 <sub>2. http://www.cs.utexas.edu/~EWD/transcriptions/EWD03xx/EWD310.html. As seen on 14.09.2014.</sub><br />
 <sub>3. Allen B. Downey, The Little Book Of Semaphores v.2.1.5, p. 103, 104</sub>
+public class DiningPhilosophers {
+	public static int NUMBER_OF_PHILOSOPHERS;
 
+	// comments of the form /*** <comment text here> ***/ point out places the
+	// actual solution is implemented
+
+	/*** Place to declare synchronization variables ***/
+	private static Semaphore[] forks;
+
+	public static void init() {
+		/*** Place to initialize synchronization variables ***/
+		forks = new Semaphore[DiningPhilosophers.NUMBER_OF_PHILOSOPHERS];
+		for (int i = 0; i < forks.length; i++) {
+			forks[i] = new Semaphore(1, true);
+		}
+	}
+
+	public static class Philosopher extends TemplateThread {
+		private int index;
+
+		/*** Place to declare synchronization variables ***/
+		private Semaphore firstFork;
+		private Semaphore secondFork;
+
+		public int getFirstFork() {
+			/*** Place to choose first fork ***/
+			return Math.min(this.index, (this.index + 1)
+					% DiningPhilosophers.NUMBER_OF_PHILOSOPHERS);
+		}
+
+		public int getSecondFork() {
+			/*** Place to choose second fork ***/
+			return Math.max(this.index, (this.index + 1)
+					% DiningPhilosophers.NUMBER_OF_PHILOSOPHERS);
+		}
+
+		public Philosopher(int numRuns, int index) {
+			super(numRuns);
+
+			this.index = index;
+
+			/*** Place to initialize synchronization variables ***/
+			firstFork = DiningPhilosophers.forks[this.getFirstFork()];
+			secondFork = DiningPhilosophers.forks[this.getSecondFork()];
+		}
+
+		@Override
+		public void execute() throws InterruptedException {
+			/*** Place to synchronize philosopher ***/
+
+			// pick up forks
+			firstFork.acquire();
+			secondFork.acquire();
+
+			// eat
+			state.eat();
+
+			// leave forks
+			firstFork.release();
+			secondFork.release();
+
+			// think
+			state.think();
+		}
+
+		public int getIndex() {
+			return index;
+		}
+	}
+
+	static DiningPhilosophersState state = new DiningPhilosophersState();
+
+	public static void main(String[] args) {
+		// removed [for i = 1 to 10 do run()] loop here - there are settings in
+		// run() to mimic similar behavior
+		run();
+	}
+
+	public static void run() {
+		try {
+			DiningPhilosophers.NUMBER_OF_PHILOSOPHERS = 5; // default initial
+															// value
+			int numRuns = 5; // number of times will Philosopher.execute() be
+								// executed
+			int numIterations = 1; // default number of iterations tested
+			int step = 5; // the increment for NUMBER_OF_PHILOSOPHERS on each
+							// iteration
+
+			/*
+			 * may become useful for building test cases Scanner s = new
+			 * Scanner(System.in); DiningPhilosophers.NUMBER_OF_PHILOSOPHERS =
+			 * s.nextInt(); numRuns = s.nextInt(); numIterations = s.nextInt();
+			 * step = s.nextInt(); s.close();
+			 */
+
+			System.out.println("Start time: " + new Date().getTime());
+
+			for (int a = 0; a < numIterations; a++) {
+				System.out.println("\nTesting "
+						+ DiningPhilosophers.NUMBER_OF_PHILOSOPHERS
+						+ " philosophers.");
+
+				// the order of these lines needs to be preserved
+
+				state.clear();
+				init();
+
+				HashSet<Thread> threads = new HashSet<Thread>();
+
+				for (int i = 0; i < DiningPhilosophers.NUMBER_OF_PHILOSOPHERS; i++) {
+					threads.add(new Philosopher(numRuns, i));
+				}
+
+				ProblemExecution.start(threads, state);
+
+				DiningPhilosophers.NUMBER_OF_PHILOSOPHERS += step;
+			}
+
+			System.out.println("\nFinish time: " + new Date().getTime());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+}
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
