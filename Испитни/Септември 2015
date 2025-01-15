@@ -194,3 +194,137 @@ state.driverLeave()
 • Доколку методот се повика, а сеуште има студенти во автобусот, ќе добиете порака за грешка.
 За решавање на задачата, преземете го проектот со клик на копчето Starter file, отпакувајте го и отворете го со Eclip Netbeans.
 Претходно назначените методи служат за проверка на точноста на сценариото и не смеат да бидат променети и мораат повикани.
+
+package OS;
+
+import java.util.concurrent.Semaphore;
+
+public class Ekskurzija {
+    static int brStudenti = 0; // Counter for students on the bus
+    static Semaphore avtobusPristignal = new Semaphore(0); // Bus arrival signal
+    static Semaphore vozac = new Semaphore(1); // Only one driver can board the bus
+    static Semaphore studenti = new Semaphore(50); // Max 50 students can board
+    static Semaphore avtobusTrgnuva = new Semaphore(0); // Bus departure signal
+
+    public void driverEnter() throws InterruptedException {
+        vozac.acquire();
+        System.out.println("Driver enters the bus.");
+    }
+
+    public void studentEnter() throws InterruptedException {
+        studenti.acquire(); // Student enters the bus
+        synchronized (this) {
+            brStudenti++;
+            System.out.println("Student enters the bus. Total students: " + brStudenti);
+            if (brStudenti == 50) {
+                avtobusTrgnuva.release(); // Signal the bus is ready to depart
+            }
+        }
+    }
+
+    public void busDeparture() throws InterruptedException {
+        avtobusTrgnuva.acquire(); // Wait until the bus is full
+        System.out.println("Bus departs.");
+    }
+
+    public void busArrive() {
+        System.out.println("Bus arrives at the destination.");
+        avtobusPristignal.release(50); // Signal students can leave
+    }
+
+    public void studentLeave() throws InterruptedException {
+        avtobusPristignal.acquire(); // Wait for bus arrival
+        synchronized (this) {
+            brStudenti--;
+            System.out.println("Student leaves the bus. Remaining students: " + brStudenti);
+            studenti.release(); // Allow space for new students
+        }
+    }
+
+    public void driverLeave() throws InterruptedException {
+        synchronized (this) {
+            if (brStudenti > 0) {
+                throw new IllegalStateException("Driver cannot leave while students are on the bus.");
+            }
+            System.out.println("Driver leaves the bus.");
+            vozac.release(); // Allow another driver to enter
+        }
+    }
+
+    // Driver class
+    static class Delever implements Runnable {
+        private final Ekskurzija state;
+
+        public Delever(Ekskurzija state) {
+            this.state = state;
+        }
+
+        public void execute() {
+            try {
+                state.driverEnter();
+                state.busDeparture();
+                state.busArrive();
+                state.driverLeave();
+            } catch (InterruptedException e) {
+                System.out.println("Driver interrupted: " + e.getMessage());
+            } catch (IllegalStateException e) {
+                System.out.println("State violation: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void run() {
+            execute();
+        }
+    }
+
+    // Student class
+    static class Student implements Runnable {
+        private final Ekskurzija state;
+
+        public Student(Ekskurzija state) {
+            this.state = state;
+        }
+
+        public void execute() {
+            try {
+                state.studentEnter();
+                state.studentLeave();
+            } catch (InterruptedException e) {
+                System.out.println("Student interrupted: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void run() {
+            execute();
+        }
+    }
+
+    public static void main(String[] args) {
+        Ekskurzija state = new Ekskurzija();
+
+        // Create and start the driver thread
+        Thread driver = new Thread(new Delever(state));
+        driver.start();
+
+        // Create and start student threads
+        Thread[] students = new Thread[50];
+        for (int i = 0; i < 50; i++) {
+            students[i] = new Thread(new Student(state));
+            students[i].start();
+        }
+
+        // Wait for all threads to finish
+        try {
+            driver.join();
+            for (Thread student : students) {
+                student.join();
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted: " + e.getMessage());
+        }
+
+        System.out.println("Excursion process completed.");
+    }
+}
