@@ -7,6 +7,45 @@
 екстенција .dat потребно е да се префрли во out именикот. Доколку in не постои треба да се
 испише не постои. Доколку out не постои треба да се креира, а доколку постои треба да се
 испразни.
+#!/bin/bash
+traverse_directory() {
+local dir=$1
+local out_dir=$2
+if [[ ! -d "$dir" ]];then
+echo "Directory does not exist"
+return
+fi
+
+for entry in "%dir"/*;do
+ if [[ ! -e "$entry" ]]; then
+            continue
+        fi
+if [[ -d "$entry" ]];then
+ echo "$entry is a directory"
+traverse_directoy "$dir" "$out_dir"
+elif [[ -f "$entry" ]];then
+file_size_kb=$( du -k "$entry"|cut -f1)
+
+if [[ "$file_size -gt 160 ]];then
+tail -c 3 "$entry" >> "$out_dir/tail.txt"
+fi
+ if [[ "$entry" == *.dat ]]; then
+                mv "$entry" "$out_dir"
+            fi
+        fi
+    done
+}
+
+main() {
+    local dir="in"
+    local out_dir="out"
+if [[ ! -d "$out_dir" ]]; then
+        mkdir "$out_dir"
+    fi
+    traverse_directory "$dir" "$out_dir"
+}
+
+main
 
 3) Да се напише командна процедура која прима четири аргументи username , data , time1 ,time2.
 Скриптата треба да провери колку пати и од кои ип адреси дадениот корисник се најавил на
@@ -16,10 +55,38 @@
 бројот на аргументи , треба да се испише упатство за користење на екранот и да заврши скриптата
 неуспешно.
 Пример за користење на скриптата ./zad3a.sh 123456 “Sep 5” 12 16
+
+#!/bin/bash
+if [ $# != 4 ]; then
+echo "USAGE: username data time1 time2"
+exit 1
+fi
+
+username=$1
+data=$2
+time1=$3
+time2=$4
+
+log_file="/var/log/auth.log"
+
+grep "$username" "$log_file"| grep "$data" |while read line; do
+//gi barame vremeto koga se uklucil korisnikot i negovata IP adresa
+log_time=$(echo "$line" | awk '{print $2 $3}')
+log_ip=$(echo "$line"|awk '{print $NF}')
+
+    log_hour=$(echo "$log_time" | awk '{print $2}' | cut -d: -f1)
+if [ "$log_hour" -gt "$time1" ] && [ "$log_hour" -le "$time2" ]; then
+echo "$log_ip">> addressi.txt
+
+fi
+done
+exit 0
+
 б) Напишете комадна процедура која прима еден аргумент , вредност во денари. Скриптата треба
 да пресмета колку монети од 50,10,5,2,1 се потребни за да се добие вредноста. Притоа треба да се
 искористи минималниот број на монети. Исто така треба да се испише упатство за користење
 доколку корисникот внесе погрешни аргументи.
+
 
 2. СИНХРОНИЗАЦИЈА
 ﻿Ова е преработка на задачата со племенска вечера. :)
