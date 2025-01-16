@@ -22,17 +22,17 @@ my-app/
 
 #Dockerfile-app
 Повлечете ја сликата eclipse-temurin со најнова верзија
-                                                  
+FROM eclipse-temurin:latest                                                
 Ископирајте ја WebApp.java апликацијата на локација /app во контејнерот
-                                                  
+COPY  src/WebApp.java /app/                                               
 Поставете го моменталниот работен директориум на /app
-                                                  
+WORKDIR /app                                                   
 Ископирајте ја апликацијата со користење на командата javac
-                                                  
+RUN javac WebApp.java                                                   
 Овозможете апликацијата да слуша на порта 8000
-                                                  
+EXPOSE 8000                                                  
 Стартувајте ја апликацијата
-                                                  
+CMD["java","WebApp"]                                                                                        
 
 #docker-compose.yml
 За овој дел немам запишано како точно беше но беше во ист формат како за #Dockerfile-app само наместо text-input полиња беа select со понудени одговори.
