@@ -37,7 +37,37 @@ CMD["java","WebApp"]
 #docker-compose.yml
 За овој дел немам запишано како точно беше но беше во ист формат како за #Dockerfile-app само наместо text-input полиња беа select со понудени одговори.
 Нешто вака беше (не е релевантно со задачата):
+version: '3.9'
 
+services:
+  java-app:
+    build:
+      context: ./java-app
+      dockerfile: Dockerfile-app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    volumes:
+      - ./data:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 Задача 2 - Скрипта во UNIX
 Date                             Time                    Status              Module Affected          Message
