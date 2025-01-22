@@ -1,0 +1,648 @@
+UNIX
+1.
+Date                             Time                    Status              Module Affected          Message
+2024-06-24               10:15:32              DEBUG            DB                                     User john logged in
+
+Потребно е да напишете скрипта која ќе даде определени информации за логовите:
+
+1) број на логови кои имаат статус еднаков на првиот аргумент предаден на скриптата, а се креирани во месецот кој е предаден како втор аргумент на скриптата во формат YYYY-MM
+доколку не се предадени 2 аргументи да се испечати порака со правилно користење Usage: script.sh <STATUS> <MONTH>
+доколку форматот на месецот не е правилен да се испечати порака со прикажен правилен формат
+
+2) IP адресата која се појавува најчесто кај логовите кои имаат статус еднаков на првиот аргумент предаден на скриптата
+доколку не е предаден аргументот повторно да се испечати истата порака за правилно користење како кај барањето под 1.
+
+3) Статистиката на појавувањата на логовите кај различните статуси во соодветен месец.
+
+Сите логови се чуваат во датотека со име system_logs.tsv која може да ја преземете тука
+
+Пример output (не е како во датотеката):
+
+Number of logs with status 'INFO' in month 2024-08: 2
+Most common IP address for logs with status 'INFO': 192.168.1.49
+Count per status for month 2024-08:
+DEBUG: 1
+INFO: 2
+WARN: 6
+ERROR: 3
+
+#!/bin/bash
+
+1)
+if [ $# -ne 2 ];then
+echo "Usage: script.sh <STATUS> <MONTH>"
+exit 1
+fi
+status=$1
+month=$2
+
+if ![["$month" ~= ^[0-9]{4}-[0-9]{2}$ ]];then
+echo "Invalid format. Requested format: YYYY-MM"
+exit 1
+fi
+
+log_file="system_logs.tsv"
+
+if [ ! -f "$log_file" ];then
+echo "log_file not found!"
+exit 1
+fi
+
+if [-n "$month"];then
+count=$(grep -E "$month" "$log_file"|grep -E "$status"|wc -l)
+echo "number of logs with status '$status' is '$count'"
+fi
+
+2)
+most_common_ip=$(grep -E "$status" "$log_file"| awk '{print $NF}'| uniq -c|awk '{print $2}')
+
+if [ -z "$most_common_ip" ];then
+most_common_ip="N/A"
+fi
+
+echo  "Most common IP address for logs with status '$status' is '$most_common_ip' "
+
+3)
+for i in DEBUG INFO WARN ERROR
+do
+        counter=$(grep $i "$log_file"  | grep "$month" | wc -l)
+        echo "$i: $counter"
+done
+
+2.
+Треба да креирате shell скрипта passed_tudents.sh koja за аргумент прима .csv датотека (пр. os_grades.csv).Доколку се повика без аргументи или со повеќе од еден аргумент, или доколку датотеката која в пратена како аргумент не со .csv екстензија, да заврши скриптата со соодветна порака за користење.
+Во спротивно, претпоставете дека содржината на датотеката е секогаш во следниот формат
+Surname, "First name", Index, Points
+Messi, Lionel, 101010,4
+Bryant, Kobe, 242424,5
+Lima, Adriana, 333333,8
+Charles, Leclerc, 161616,9
+Nadal, Rafael, 111111,3
+Kroes, Doutzen, 444444,10
+Davchev, Jovan, 141037,3
+Датотеката содржи информации за презимето, името, индексот и поените на даден студент. Скриптата треба да креира нова датотека, така што ќе се именува passed_(csv_file_name) (пр. од os_grades.csv vo passed_os_grades.csv) каде што ќе се копираат само положените студенти (сите со барем 5 поени) и на крајот од датотеката ќе се додади нова линија Passed studente average points: {number}" каде ќе стои просечната број на поени од сите положени студенти. Доколку постои веќе датотека со тоа (новото) име, треба да се избрише нејзината претходна содржина.
+За оваа датотека, по извршувањето на скриптата, новата датотека (passed_os_grades.csv) би изгледала вака:
+Surname, "First name", Index, Points
+Bryant, Kobe, 242424,5
+
+#!/bin/bash
+
+if [ !# -ne 1 ];then
+echo "USAGE: <csv_file>"
+exit 1
+fi
+
+input_file=$1
+if [[ "$input_file" != *.csv ]];then
+echo "ERROR: the file must have .csv extension."
+exit 1
+fi
+output_file="passed_${input_file}"
+ 
+if [ -f "$output_file" ];then
+> "output_file"
+fi
+
+echo "Surname, \"First name\", Index,Points">"$output_file"
+
+total_points=0
+passed_count=0
+
+while IFS=',' read -r surname firstname inedx points;do
+# skip the header line
+if [ "$surname" = "Surname" ];then
+continue
+fi
+# Remove leading/trailing spaces and double quotes from the first name
+firstname=$(echo "$firstname"|sed 's/^ *//; s/ *$//; s/"//g')
+
+if [ "$points" -ge 5];then
+echo "$surname, \"$firstname\", $index, $points">> "$output_file"
+total_points=$((total_points+points))
+passed_count=$((passed_count+1))
+fi
+done<"$input_file"
+
+if [ "$passed_count" -gt 0 ];then
+average=$(echo"scale=2; $total_points /$passed_count"|bc)
+else
+average=0
+fi
+
+echo "Passed students average points: $average" >> "$output_file"
+
+echo "Processed file created: $output_file"
+
+
+//drugo resenie od Discord 
+#!/bin/bash
+
+data=`cat $1`
+
+if [ -f "passed_$1" ]
+then    rm "passed_$1"
+        touch "passed_$1"
+else
+        touch "passed_$1"
+fi
+
+echo "Surname,First name,Index,Points" >> "passed_$1"
+i=0
+IFS=$'\n'
+for student in $data
+do
+        if [ $i -eq 0 ]
+        then
+                i=`expr $i + 1`
+                continue
+        fi
+        `echo $student | grep -v ',[0-4]$' >> "passed_$1" `
+        points=`echo $student | awk -F, '{print $4}'`
+done
+
+count=`cat "passed_$1" | wc -l`
+count=`expr $count - 1`
+sum=`cat $"passed_$1" | awk -F, 'BEGIN{s=0} {s+=$4} END{print s}'`
+avg=`echo "scale=2; $sum / $count" | bc`
+
+echo "Passed students average points: $avg" >> "passed_$1"
+cat "passed_$1"
+
+
+3.
+Да се напише командна процедура која во даден именик (прв аргумент на скриптата) и сите негова подименици, рекурзивно ќе ги пронајде сите датотеки и ќе ги ископира во друг именик (втор аргумент на скриптата). При копирани, имињата на датотеките кои се копираат треба да се променат во нови имиња кои ја претставуваат нивната апсолутна патека, со една модификација: специјалниот знак / треба да се замени со знакот _ да може копирањето да биде валидно. Пример: Датотеката 'zad1.sh' чија апсолутна патека е "/home/123456/zad1.sh", при копирањето треба да се именува како home_23456_zad1.sh.
+При копирање треба да се провери дали датотеката која се копира има иста содржина со некоја од датотеките кои веќе се наоѓаат во дестинацискиот именик. Оваа проверка да се реализира со користење на ваша функција, која прима два аргументи (имина / локации на Датотеки). Доколку се случи двете датотеки да имаат иста содржина, функцијата печати "true иптата треба да го искористи овој излез од функцијата за да во посебна датотека (трет аргумент на скриптата) ги запише имињата на двете датотеки со иста содржина
+На почеток на скриптата направете проверка дали се проследени сите аргументи. Доколку не се, прикажете упатство за употреба и излезите. неуспешно. Доколку изворниот именик не постои, скриптата треба да го извести корисникот за тоа и да заврши неуспешно. Доколку, лак дестинацискиот именик не постои, да се креира нов, а ако постоел истиот да се избрише
+Пример за повик на скриптата:
+/zadacha4sh/home/user/source/home/user/destination /home/asistent/log.txt
+
+#!/bin/bash
+
+if [ "$#" -ne 3 ];then
+echo "USAGE:<source_directory> <destination_directory> <log_file>"
+exit 1
+fi
+
+source_dir=$1
+output_dir=$2
+log_files=$3
+
+if [ !d "$source_dir" ];then
+echo "ERROR: Source directory missing"
+exit 1 
+fi
+
+if [ -d "$destination_dir" ];then
+rm -rf "$destination_dir"
+fi
+mkdir -p "$destination_dir"
+>"$log_file"
+
+compare_files(){
+local file1="$1"
+local file2="$2"
+if cmp -s "$file1" "$file2";then
+echo "true"
+else
+echo "false"
+fi
+}
+
+find "$source_dir" -type f | while read -r file; do
+    # Преименување на датотеката со "/" заменето со "_"
+    new_name=$(echo "$file" | sed 's/\//_/g' | sed 's/^_//')
+    dest_file="$destination_dir/$new_name"
+
+    # Проверка дали постои датотека со иста содржина во дестинацискиот именик
+    conflict_found=false
+    for existing_file in "$destination_dir"/*; do
+        if [ -f "$existing_file" ] && [ "$(compare_files "$file" "$existing_file")" = "true" ]; then
+            echo "$file and $existing_file" >> "$log_file"
+            conflict_found=true
+            break
+        fi
+    done
+
+    # Копирање само ако нема конфликт
+    if [ "$conflict_found" = "false" ]; then
+        cp "$file" "$dest_file"
+    fi
+done
+
+echo "Files have been processed. Logs are saved in '$log_file'."
+
+
+
+ЗАДАЧИ ОД ПРАИСТОРИСКИ ИСПИТИ
+1.
+(40 поени) Командни процедури
+а) (15 поени) Напишете командна процедура која прима два аргументи: file1 и file2. Скриптата треба да провери дали двете датотеки имаат иста содржина. Доколку датотеките имаат иста содржина, скриптата треба да го извести 
+корисникот за тоа и да ја избрише втората датотека. Притоа треба да го извести корисникот за тоа дали бришењето успеало или не. Доколку двете датотеки се различни по содржина, тогаш скриптата треба само да отпечати
+соодветна порака за корисникот.
+Скриптата треба да проверува дали корисникот ја повикал со точен број аргументи. Доколку бројот на аргументи е погрешен, потребно е да се испише упатство за користење и да заврши скриптата неуспешно. Исто така, скриптата 
+треба да провери дали датотеките постојат. Доколку макар една од нив не постои, скриптата треба тоа да му го соопшти на корисникот и да заврши неуспешно.
+Скриптата зачувајте ја во домашниот именик, под име zada-t1.sh.
+Пример за користење на скриптата: zad3a-ti sh myfiles/a.txt b.txt
+
+6) (25 поени) Напишете командна процедура која на дадена локација (прв аргумент на скриптата) ќе ги пронајде сите shell
+командни процедури и ќе провери дали корисникот има привилегии за нивно извршување (ќе се отпечатат соодветни пораки за секоја од скриптите. Доколку корисникот нема привилегии за извршување на пронајдената скрипта, 
+вашата скрипта треба да ги додаде овие привилегии и да го извести корисникот за успешноста на промената.
+Напомена: Наставката не секогаш е доволен индикатор за содржината на датотеката или именикот. Проверете ги датотеките дали содржат некоја карактеристика во својата содржина која би ги идентификувала како командни процедури.
+Скриптата треба да проверува дали корисникот ја повикал со точен број аргументи. Доколку бројот на аргументи е погрешен. потребно е да се испише упатство за користење и да заврши скриптата неуспешно. Исто така, скриптата 
+треба да провери дали локацијата наведена како пре аргумент постои и доколку не треба да го извести корисникот и да заврши неуспешно.
+Скриптата зачувајте ја во домашниот именик, под име 6-13..
+Пример за користење на скриптата: 30-11.th/os-files
+Your solution file
+
+а)
+#!/bin/bash
+
+if [ $# -ne 2 ];then
+echo "USAGE: file1 file2"
+exit 1
+
+file1=$1
+file2=$2
+
+if [ ! -f "$file1" ];then
+echo "file1 doesn't exist!"
+exit 1
+fi
+
+if [ ! -f "$file2" ];then
+echo "file2 doesn't exist!"
+exit 1
+fi
+
+if cmp -s "$file1" "$file2";then
+echo "file1 and file2 are same!"
+rm "$file2"
+if [ $? -eq 0 ];then
+echo "file2 was successfully removed."
+else
+echo "file2 was not successfully removed."
+fi
+else
+echo "file1 and file2 are diffrent."
+fi
+
+
+
+6)
+
+if [ $# -ne 1 ];then
+echo "USAGE: <directory-path>"
+exit 1
+fi
+
+directory=$1
+if [ ! -d "$directory" ];then
+echo "Error: Directory '$directory' does not exist."
+exit 1
+fi
+
+for file in "$directory"/*;do
+
+if [ ! -f "$file" ];then
+continue
+fi
+
+if head -n 1 "$file" | grep -q "^#!.*sh";then
+if [ -x "$file" ];then
+echo "User has execute premissions"
+else
+chmod +x "$file"
+if [ #? -eq 0 ];then
+echo "Execute permissions added succesfully"
+else
+echo "Failed to add execute permissions"
+fi
+fi
+fi
+done
+exit 0
+
+2.
+2.1.
+UNIX команди
+а) (5 поени) Напишете UNIX команда со која ќе ги прикажете сите детали за најавувањата на корисници кои се случиле во текот на вчерашниот ден среда, 17 јуни. Командата снимете ја во датотека за3а-11.sh., во вашиот 
+домашен именик на н серверот.
+6) (10 поени) Напишете UNIX команда со која ќе ги прикажете корисничките имиња на корисниците кои имаат тековно активни процеси, стартувани во тек на 10:00 часот (10:00-10:59), листата да биде нумерички сортирана и 
+да не содржи дупликати Командата снимете ја во датотека zаd3b-11.ch, во вашиот домашен именик на os finki skin серверот.
+Your solution file
+а)nano ~/za3a-11.sh
+chmod +x ~/za3a-11.sh 
+last|grep "Wed Jun 17"
+6) nano ~/za3b-11.sh
+chmod +x ~/za3b-11.sh 
+ps -eo user,lstart| grep "10:"|awk '{print $1}'|sort|uniq
+
+2.2.
+UNIX командна процедура
+(25 поени) Да се напише командна процедура која во даден именик (пря аргумент) и сите негови подименици рекурзивно кети пронајде сите датотеки модифицирани на даден датум (итор аргумент). За секоја од пронајдените 
+датотеки треба да се провери дали во содржината има структура за повторување и истата да се искоментира. Да се зачуваат овие измени во самата датотека
+Направете проверка дали се проследени потребните аргументи и доколку не се, прикажете соодветно упатство за употреба. Доколку изворниот именик не постои, скриптата треба да го извести корисникот за тоа и да заврши неуспешно. Да се внимава вториот аргумент на скриптата да биде во форматот кој што се користи за датум при детално листање на именици (на пример: Jun 18).
+Командната процедура снимете ја под името zad4-11.sh. во вашиот домашен именик на os. Fink серверот.
+Your solution file
+if [ $# -ne 2 ];then
+echo "USAGE: directory date"
+exit 1
+fi
+
+DIRECTORY=$1
+MOD_DATE=$2
+
+if [ ! -d "$DIRECTORY" ]; then
+    echo "Error: Directory '$DIRECTORY' does not exist."
+    exit 1
+fi
+
+FILES=$(find "$DIRECTORY" -type f -newermt "$MOD_DATE 00:00:00" ! -newermt "$MOD_DATE 23:59:59")
+
+if [ -z "$FILES" ]; then
+    echo "No files found modified on $MOD_DATE."
+    exit 0
+fi
+
+comment_repeating_lines() {
+    local file=$1
+    awk '
+    {
+        count[$0]++
+        if (count[$0] > 1) {
+            print "# " $0
+        } else {
+            print $0
+        }
+    }' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+}
+
+for file in $FILES; do
+    echo "Processing: $file"
+    comment_repeating_lines "$file"
+done
+
+echo "Processing complete."
+
+exit 0
+
+3.
+Да се напишат командни процедури за следните барања:
+а) (20 поени) да се направи листање во вид на мени за тековниот именик. Менито треба да содржи три опции и тоа:
+листање на сите извршни командни процедури (скрипти):
+2. листање на датотеките креирани или модифицирани од даден корисник (корисникот се чита од тастатура):
+3. листање на најавените корисници на системот чие што корисничко име е од формат со 2 букви и 4 цифри.
+Командната процедура снимете ја под името zad3a-t2.sh. Во вашиот домашен именик на os. finki.ukim.mk серверот.
+
+6) (20 поени) Напишете UNIX скрипта со која ќе споите две датотеки. Имињата на датотеките се предаваат како аргументи на командна линија.
+Треба да се провери дали содржината на датотеките е иста или не. Доколку е иста, втората датотека треба да се избрише. 
+Доколку не е иста, треба на првата датотека да се додаде втората датотека во продолжение и новокреираната датотека да се сними под име ImeDatotekal imeDatoteka2.txt.
+Направете проверка дали се проследени потребните аргументи и доколку не се, прикажете соодветно упатство за употреба. Доколку предадените аргументи не се датотеки, скриптата
+треба да го извести корисникот за тоа и да заврши неуспешно.
+Командната процедура снимете ја под името zаd3b-t2.sh, во вашиот домашен именик на os. finki.ukim.mk серверот.
+Your solution file
+а)
+#!/bin/bash
+
+echo "1. Листање на сите извршни командни процедури (скрипти)"
+echo "2. Листање на датотеките креирани или модифицирани од даден корисник"
+echo "3. Листање на најавените корисници чие корисничко име е од формат со 2 бу>
+read -p "Изберете опција (1/2/3): " option
+
+case $option in 
+1) find . -maxdepth 1 -type f -executable -name "*.sh"
+;;
+2) read User
+find . -user "$User" 
+;;
+3)
+who|awk '{ if($1~/^[aA-zZ]{2}[0-9]{4}$/) print $1'
+;;
+*)
+echo "Nevalidna opcija"
+;;
+esac
+а
+
+6)
+#!/bin/bash
+
+if [ $# -ne 2 ];then
+echo "USAGE: file1 file2"
+exit 1
+
+file1=$1
+file2=$1
+
+if [ ! -f "$file1" ];then
+echo " '$file1' ne e datoteka"
+exit 1
+fi
+
+if [ ! -f "$file2" ];then
+echo " '$file2' ne e datoteka"
+exit 1
+fi
+
+if cmp -s "$file1" "$file2";then
+echo "Datotekite se isti"
+rm "$file2"
+else 
+cat "$file2" >> "$file1"
+newFileName="${file1} ${file2}.txt"
+mv "$file1" "$newFileName" 
+fi
+
+4.
+UNIX командни процедури
+Да се напишат командни процедури за следните барања:
+а) (20 поени) Да се направи листање во вид на мени за тековниот именик. Менито треба да содржи три опции и тоа:
+процедури
+1. листање на командните процедури од тековниот именик;
+2. листање на датотеките креирани или модифицирани на тековниот датум:
+3. листање на најавените корисници на системот чие што корисничко име е од формат со 6 цифри.
+Командната процедура снимете ја под името zad3a-t1.sh, во вашиот домашен именик на os.finki.ukim.mk серверот.
+
+6) (20 поени) Напишете UNIX командна процедура со која ќе споредувате две датотеки. Имињата на датотеките се предаваат како аргументи на командна линија.
+Треба да се провери дали содржината на датотеките е иста или не. Доколку е иста, втората датотека треба да се избрише. Доколку не е иста, треба на екран да се испечати број на редови во кои се разликуваат датотеките.
+Направете проверка дали се проследени потребните аргументи и доколку не се, прикажете соодветно упатство за употреба. Доколку предадените аргументи не се датотеки, скриптата треба да го извести корисникот за тоа и да заврши неуспешно.
+Командната процедура снимете ја под името zad3b-t2.sh, во вашиот домашен именик на os.finki.ukim.mk серверот.
+Your solution file
+
+а)
+#!/bin/bash
+echo "1. листање на командните процедури од тековниот именик;"
+echo "2. листање на датотеките креирани или модифицирани на тековниот датум;"
+echo "3. листање на најавените корисници на системот чие што корисничко име е од формат со 6 цифри
+read -p "Изберете опција (1/2/3): " option
+
+case $option in
+1) find . -maxdepth 1 -type file -name "*.sh"
+;;
+2) find . -maxdepth 1 -type f -daystart -mtime 0
+;;
+3) who|awk '{ if($1~/^[0-9]{6}$/) print $1}'
+;;
+*)
+echo "Nevaliden izbor"
+;;
+esac
+
+6)
+#!/bin/bash
+
+if [ $# -ne 2 ];then
+echo"USAGE: file1 file2"
+exit 1
+fi
+
+file1=$1
+file2=$2
+if [ ! -f  "$file1" ];then
+echo " '$file1' ne e datoteka"
+exit 1
+fi
+
+if [ ! -f "$file2" ];then
+echo " '$file2' ne e datoteka"
+exit 1
+fi
+
+if cmp -s "$file1" "$file2";then
+echo " Sodrzinata e ista"
+rm "$file2"
+else
+diff_count=$(diff -U 0 "$file1" "$file2" | grep -v "^@" | grep -v "^--" | grep -v "^+++" | wc -l) 
+echo " '$diff_count' "
+fi
+
+5.
+ Скрипта во UNIX 
+Излистај ги сите именици и датотеки под именикот in. За секој именик/ датотека испишете го
+името и испишете дали е именик или датотека.
+За датотекките испишете ја нивната големина во килобајти. Листањето треба да го помине целото
+дрво од именици и датотеки во in.Доколку излистаната датотека е над 160 килобајти , потребно е
+последните 3 бајти да ги додадете во tail.txt во out именикот. Доколку излистаната дадотека е со
+екстенција .dat потребно е да се префрли во out именикот. Доколку in не постои треба да се
+испише не постои. Доколку out не постои треба да се креира, а доколку постои треба да се
+испразни.
+
+#!/bin/bash
+
+in_dir="in"
+out_dir="out"
+
+if [ ! -d "$in_dir ];then
+echo " $in_dir ne postoi"
+exit 1
+fi
+
+if [ ! -d "$out_dir" ];then
+mkdir "$out_dir"
+else
+rm -rf "$out_dir"/*
+fi
+
+find "$in_dir" -exec sh -c '
+for file do
+
+if [ -d $file ];then
+echo " $file e imenik"
+
+elif [ -f $file ];then
+echo " $file e datoteka"
+size_kb= $(du -k "$file"| cut -f1)
+echo " $file i datoteka so golemina od $size_kb KB
+
+if [ "$size_kb" -gt 160 ];then
+tail -c 3 "$file">> /tail.txt
+fi
+
+if [[ "$file" == *.dat ]];then
+cp "$file" /out_dir
+fi
+fi
+done
+' sh {} +
+echo "Procedurata e zavrsena"
+
+6.
+Да се напише командна процедура која прима четири аргументи username , data , time1 ,time2.
+Скриптата треба да провери колку пати и од кои ип адреси дадениот корисник се најавил на
+системот на точната дата во интервалот меѓу time1 i time2.
+Да се испечатат ip адресие од кои корисникот се најавувал во нова датотека addressi.txt.
+Скриптата треба да проверува дали корисникот ја повикал со точни аргументи , доколку е утнат
+бројот на аргументи , треба да се испише упатство за користење на екранот и да заврши скриптата
+неуспешно.
+Пример за користење на скриптата ./zad3a.sh 123456 “Sep 5” 12 16
+
+#!/bin/bash
+
+if [ $# -ne 4 ];then
+echo "USAGE: username data time1 time2"
+exit 1
+fi
+
+username=$1
+data=$2
+time1=$3
+time2=$4
+
+log_file="/var/log/auth.log"
+
+grep "$username" "$log_file"|grep "$data"| while read line;do
+log_time=$(echo $line | awk '{print $2 $3}')
+log_ip=$(echo $line | awk '{ print $NF}')
+
+    log_hour=$(echo "$log_time" | awk '{print $2}' | cut -d: -f1)
+if [ "$log_hour" -gt "$time1" ] && [ "$log_hour" -le"$time2" ]; then
+echo "$log_ip">>adressi.txt
+fi
+done
+exit 0
+
+$#.
+Да се напише командна процедура која ќе ги извршува следните функционалности:
+$#.1. Ќе ги најде сите датотеки од домашниот именик со екстензија .txt во периодот од х до y денови, x и y се цели броеви кои означуваат денови кога датотеката е последно променета и се даваат како прв и втор аргумент на скриптата. Оваа функционалност треба да биде овозможена преку соодветна функција именувана како getFiles, повикана со соодветни аргументи.
+$#.2. Со помош на функцијата getFiles ќе ги пронајде сите филтрирани датотеки, а потоа на оние чија големина е поголема од 150 бајти ке ги копира во именик зададен како трет аргумент на командната процедура, преименувани во следен формат: index_Y.txt, каде y е бројот на појавувања на echo изразот во содржината на документот. Доколку датотеката веќе постои тогаш е преименува во index_YZ.txt, каде Z е реден број на појавување на истиот фајл. Оваа функционалност треба да биде овозможена преку соодветна функција именувана како findAllTxtFiles, повикана со соодветни аргументи.
+На почеток на скриптата направете проверка за тоа дали се проследени сите аргументи. Доколку не се прикажете соодветно упатство за употреба и излезете неуспешно. Да се внимава, доколку дестинацискиот именик не постои, да се креира нов, а ако постоел истиот да се избрише.
+Командната процедура треба да се зачува како zad3.sh
+Пример за користење: zad3.sh. 10 14 /destination
+Доколку ви се потребни може да креирате и дополнителни процедури
+
+#!/bin/bash
+
+if [ $# -ne 2 ];then
+echo "USAGE: x y dest_dir"
+exit 1
+fi
+
+x=$1
+y=$2
+dest_dir=$3
+2.1)
+getFiles(){
+find ~ -name "*.txt" -type f -mtime -"$x" -mtime +"$y"
+}
+
+2.2)
+findAllTxtFiles(){
+if [ -d "$dest_dir" ];then
+rm -rf "$dest_dir"
+fi
+mkdir -p "$dest_dir
+
+for file in $(getFiles);do
+if [ $(start -c%s "$file") -gt 150 ];then
+ count =$(grep -o 'echo' "$file"|wc -l)
+ target_file="$dest_dir/index${count}.txt"
+while [ -e "$target_file" ];do
+suffix=$(date +%s%N) 
+target_file="$DEST_DIR/index${count}_${suffix}.txt"
+done
+
+cp "$file" "$target_file"
+((index++))
+fi
+done
+}
